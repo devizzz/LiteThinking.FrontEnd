@@ -16,19 +16,33 @@ import {
 interface IProps {
   openModal: boolean;
   setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
+  companyToEdit?: Companies;
   onSubmit: (companies: Companies) => void;
 }
 
 const CompaniesForm = (props: IProps) => {
-  const { openModal, setOpenModal } = props;
+  const { openModal, setOpenModal, companyToEdit } = props;
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<Companies>();
   const onSubmit: SubmitHandler<Companies> = (data) => {
+    if (companyToEdit) data.id = companyToEdit.id;
     props.onSubmit(data);
   };
+
+  React.useEffect(() => {
+    if (companyToEdit) reset(companyToEdit);
+    else
+      reset({
+        NIT: "",
+        name: "",
+        address: "",
+        phone: "",
+      });
+  }, [companyToEdit]);
 
   return (
     <Dialog
@@ -38,7 +52,9 @@ const CompaniesForm = (props: IProps) => {
       onClose={() => setOpenModal(false)}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>Crear compañia</DialogTitle>
+        <DialogTitle>{`${
+          companyToEdit ? "Editar" : "Crear"
+        } compañia`}</DialogTitle>
         <DialogContent>
           <FormGroup>
             <FormControl error={errors.NIT ? true : false} variant="standard">
@@ -49,7 +65,7 @@ const CompaniesForm = (props: IProps) => {
                 {...register("NIT", { required: true })}
               />
             </FormControl>
-            <FormControl error={errors.NIT ? true : false} variant="standard">
+            <FormControl error={errors.name ? true : false} variant="standard">
               <InputLabel htmlFor="name">Nombre de la compañia</InputLabel>
               <Input
                 id="name"
@@ -74,7 +90,7 @@ const CompaniesForm = (props: IProps) => {
               <InputLabel htmlFor="phone">Teléfono de la compañia</InputLabel>
               <Input
                 id="phone"
-                maxRows={50}
+                maxRows={15}
                 {...register("phone", { required: true })}
               />
             </FormControl>
