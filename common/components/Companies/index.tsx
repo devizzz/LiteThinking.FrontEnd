@@ -31,6 +31,7 @@ import html2canvas from "html2canvas";
 import FilesDropZone from "../DropZone";
 import sendEmail from "@common/apis/services/sendEmail";
 import { SubmitHandler, useForm } from "react-hook-form";
+import deleteCompany from "@common/apis/services/companies/deleteCompany";
 
 const Companies = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -44,8 +45,22 @@ const Companies = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<{ email: string }>();
-  const onSubmitSendEmail: SubmitHandler<{ email: string }> = (data) => {
-    sendAttach(data.email);
+  const onSubmitSendEmail: SubmitHandler<{ email: string }> = async (data) => {
+    try {
+      await sendAttach(data.email);
+      setOpenModalSendPdf(false);
+      alert("Email enviado correctamente");
+    } catch(error) {
+      const code: number | null = getErrorCode(error);
+      if (code === 400) {
+        const data = getErrorData(error);
+        if (data) {
+          alert(data.detail);
+        }
+      } else {
+        alert("Ha ocurrido un error interno");
+      }
+    }
   };
 
   const printRef = React.useRef(null);
@@ -119,8 +134,28 @@ const Companies = () => {
   }, []);
 
   const sendAttach = async (email: string) => {
-    if(file){
+    if (file) {
       await sendEmail(email, file);
+    }
+  };
+
+  const removeCompany = async (id: string, NIT: string) => {
+    try {
+      if (confirm("¿Estas seguro de eliminar esta compañia?")) {
+        await deleteCompany(id, NIT);
+        alert('Compañia eliminada correctamente');
+        refetchData();
+      }
+    } catch (error) {
+      const code: number | null = getErrorCode(error);
+      if (code === 400) {
+        const data = getErrorData(error);
+        if (data) {
+          alert(data.detail);
+        }
+      } else {
+        alert("Ha ocurrido un error interno");
+      }
     }
   };
 
@@ -184,6 +219,11 @@ const Companies = () => {
                 {...register("email", { required: true })}
               />
             </FormControl>
+            {file && (
+              <Typography variant="h5" style={{ color: "#020083" }}>
+                {file.name}
+              </Typography>
+            )}
             <FilesDropZone onDrop={onDrop} accept={{ "application/pdf": [] }} />
           </DialogContent>
           <DialogActions>
@@ -204,6 +244,7 @@ const Companies = () => {
           companies={companies}
           setOpenModal={setOpenModal}
           setCompanyToEdit={setCompanyToEdit}
+          removeCompany={removeCompany}
         />
       </div>
     </div>

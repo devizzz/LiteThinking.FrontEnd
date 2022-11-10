@@ -6,16 +6,17 @@ import {
   GridRowParams,
 } from "@mui/x-data-grid";
 import { Companies } from "@common/apis/types/companies";
-import { Edit as EditIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 
 interface IProps {
   companies: Array<Companies>;
   setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
   setCompanyToEdit: React.Dispatch<React.SetStateAction<Companies | undefined>>;
+  removeCompany: (id: string, NIT: string) => void;
 }
 
 const CompaniesList = (props: IProps) => {
-  const { companies, setOpenModal, setCompanyToEdit } = props;
+  const { companies, setOpenModal, setCompanyToEdit, removeCompany } = props;
 
   const columns: GridColumns<Companies> = [
     { field: "NIT", headerName: "NIT", flex: 1 },
@@ -35,6 +36,13 @@ const CompaniesList = (props: IProps) => {
           }}
           label="Delete"
         />,
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          onClick={() => {
+            removeCompany(params.row.id, params.row.NIT);
+          }}
+          label="Delete"
+        />
       ],
     },
   ];
